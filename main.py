@@ -76,7 +76,7 @@ def main():
                 (age, "Rango de edad") if age != "" else None,
                 (item_category, "Categorías del producto") if item_category != "" else None,
                 (item_title, "Título del producto") if item_title != "" else None,
-                (interaction, "¿Visitado o Recomendado?") if item_title != "" else None,
+                (interaction, "¿Visitado o Recomendado?") if interaction != "" else None,
                 ("Si", "Más vendido") if best_seller else None,
                 ("Si", "Llega mañana") if fast_shipping else None,
                 ("Si", "Devolución gratis") if free_return else None,
