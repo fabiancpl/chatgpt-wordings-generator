@@ -6,6 +6,40 @@ from annotated_text import annotated_text
 import openai
 
 
+prompt = """
+    Como un experto en marketing digital, tu labor es ayudarme a crear wordings para el envío de campañas de marketing cuyo objetivo es motivar al usuario a finalizar la compra de un producto previamente visitado en nuestro marketplace.
+
+    También puede suceder que el usuario no haya visitado el producto, pero se le esté recomendando uno similar utilizando nuestro algoritmo de recomendación.
+
+    El wording debe ser lo más engage posible, por lo que siempre que se pueda trata de inferir características del producto que sean llamativas para el usuario dada su edad o género.
+
+    También debes tener en cuenta que el público objetivo es de {site}, por lo que siempre que se pueda trata de utilizar expresiones propias de ese país. Note que para Brasil el wording debe estar en portugués.
+
+    No olvides que el usuario puede comprar el producto para sí mismo o para alguien más. Infiere estos detalles basado en el típo de producto y las características del usuario. Ajusta el wording en consecuencia.
+
+    Los wordings deben ser cortos y estar compuestos de un título y subtítulo. El título no debe superar los 35 caracteres y el subtítulo los 150 caracteres.
+
+    Devuélveme el wording en formato JSON el cual debe tener 2 claves: title, subtitle.
+
+    Ahora te voy a pasar en comillas triples los detalles del usuario y el producto a considerar dentro del wording, además de posibles condiciones de compra. La información proporcionada tiene la siguiente estructura:
+
+    - Nombre del usuario
+    - Género del usuario (Femenino, Masculino, LGBTQ+)
+    - Rango etario (también se detalla la generación a la que pertenece el usuario)
+    - Categorías del producto (organizadas por niveles separadas por comas)
+    - Título del producto
+    - Visitado o recomendado (indica si el usuario visitó el producto o es un producto recomendado por el algoritmo de recomendación)
+    - Condiciones de compra (separadas por comas)
+
+    '''{content}'''
+
+    Responde sólo con el archivo JSON.
+
+    Un ejemplo de wording para el producto 'Vaso Termico De Acero Con Tapa Para Cafe Bebidas Frio Calor' podría ser el siguiente: 
+    - title: ¡Oye, Francisco! Dale toda la onda a tus bebidas con estilo
+    - subtitle: 'Vasos térmicos de acero ¡Ideal para tu café en casa u oficina!
+    """
+
 def main():
     st.set_page_config(page_title="Remarketing Demo")
 
@@ -53,6 +87,9 @@ def main():
     # Model parameters
 
     temperature = st.number_input("Temperatura:", step=0.1, value=0.8)
+
+    with st.expander("**Inspeccionar prompt**"):
+        st.write(prompt)
 
     if st.button("Crear wording"):
         response = generate_response(site,
@@ -102,48 +139,12 @@ def generate_response(site,
     - Condiciones de compra: {"Más vendido" if best_seller else ""}, {"Llega mañana" if fast_shipping else ""}, {"Devolución gratis" if free_return else ""}, {"Cuotas sin interés" if installments else ""}, {"Descuento del 25%" if discount else ""}
     """
 
-    prompt = f"""
-    Como un experto en marketing digital, tu labor es ayudarme a crear wordings para el envío de campañas de marketing cuyo objetivo es motivar al usuario a finalizar la compra de un producto previamente visitado en nuestro marketplace.
-
-    También puede suceder que el usuario no haya visitado el producto, pero se le esté recomendando uno similar utilizando nuestro algoritmo de recomendación.
-
-    El wording debe ser lo más engage posible, por lo que siempre que se pueda trata de inferir características del producto que sean llamativas para el usuario dada su edad o género.
-
-    También debes tener en cuenta que el público objetivo es de {site}, por lo que siempre que se pueda trata de utilizar expresiones propias de ese país. Note que para Brasil el wording debe estar en portugués.
-
-    No olvides que el usuario puede comprar el producto para sí mismo o para alguien más. Infiere estos detalles basado en el típo de producto y las características del usuario. Ajusta el wording en consecuencia.
-
-    Los wordings deben ser cortos y estar compuestos de un título y subtítulo. El título no debe superar los 35 caracteres y el subtítulo los 150 caracteres.
-
-    Devuélveme el wording en formato JSON el cual debe tener 2 claves: title, subtitle.
-
-    Ahora te voy a pasar en comillas triples los detalles del usuario y el producto a considerar dentro del wording, además de posibles condiciones de compra. La información proporcionada tiene la siguiente estructura:
-
-    - Nombre del usuario
-    - Género del usuario (Femenino, Masculino, LGBTQ+)
-    - Rango etario (también se detalla la generación a la que pertenece el usuario)
-    - Categorías del producto (organizadas por niveles separadas por comas)
-    - Título del producto
-    - Visitado o recomendado (indica si el usuario visitó el producto o es un producto recomendado por el algoritmo de recomendación)
-    - Condiciones de compra (separadas por comas)
-
-
-
-    '''{content}'''
-
-    Responde solo con el archivo JSON.
-
-    Un ejemplo de wording para el producto 'Vaso Termico De Acero Con Tapa Para Cafe Bebidas Frio Calor' podría ser el siguiente: 
-    - title: ¡Oye, Francisco! Dale toda la onda a tus bebidas con estilo, 
-    - subtitle: 'Vasos térmicos de acero ¡Ideal para tu café en casa u oficina!
-    """
-
     # Make an API call to ChatGPT to generate a response
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             { "role": "system", "content": "Experto en marketing digital" },
-            { "role": "user", "content": prompt }
+            { "role": "user", "content": prompt.format(site=site, content=content) }
         ],
         temperature=temperature
     )
