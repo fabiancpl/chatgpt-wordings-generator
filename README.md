@@ -1,4 +1,4 @@
-# ChatGPT for e-commerce marketing
+# GPT for e-commerce marketing
 
 This is a basic example about how to use ChatGPT to generate wordings for being used as push notification messages in an e-commerce marketing campaign.
 
